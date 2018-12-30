@@ -1,97 +1,18 @@
 """
-Gibbs SeaWater (GSW) Oceanographic Toolbox of TEOS-10 (gsw_c_v3.05_4)
-http://www.teos-10.org/pubs/gsw/html/gsw_contents.html
+Gibbs SeaWater (GSW) Oceanographic Toolbox of TEOS-10
+Documentation: http://www.teos-10.org/pubs/gsw/html/gsw_contents.html
 These declarations facilitate the use of TEOS-10 functions with Julia 1.0
-
-Variables:
-   sa           - absolute  salinity  [ g/kg ]
-   sp           - practical salinity  [ g/kg ]
-   sstar        - preformed salinity  [ g/kg ]
-   sr           - reference salinity  [ g/kg ]
-   sk           - knudsen   salinity  [ g/kg ]
-   t            - in situ temperature (ITS-90) [ deg C ]
-   pt           - potential temperature [ deg C ]
-   ct           - conservative temperature [ deg C ]
-   t_ih         - in-situ temperature of the ice at pressure p (ITS-90) [deg C]
-   C            - conductivity [ mS/cm ]
-   p            - sea pressure  [ dbar ]
-   p_ref        - reference pressure [ dbar ] ( i.e. absolute reference
-                  pressure - 10.1325 dbar; zero if none )
-   pt0_ice      - potential temperature of ice [ deg C ] with reference
-                  sea pressure (pr) = 0 dbar.
-   lon          - longitude
-   lat          - latitude
-   saturation_fraction - the saturation fraction of dissolved air in seawater
-                  [0..1], default is 0, air free
-   h            - specific enthalpy  [ J/kg ]
-   entropy      - specific entropy  [ J/(kg*K) ]
-   ct_sa_wrt_t  - the first derivative of Conservative Temperature with respect
-                  to Absolute Salinity at constant t and p. [ K/(g/kg)]
-                  i.e. [ K kg/g ]
-   ct_t_wrt_t   - the first derivative of Conservative Temperature with respect
-                  to in-situ temperature, t, at constant SA and p. [ unitless ]
-   ct_p_wrt_t   - the first derivative of Conservative Temperature with respect
-                  to pressure P (in Pa) at constant SA and t. [ K/Pa ]
-   h_sa         - the first derivative of specific enthalpy with respect to
-                  Absolute Salinity at constant CT and p. [ J/(kg (g/kg))]
-                  i.e. [ J/g ]
-   h_ct         - the first derivative of specific enthalpy with respect to
-                  CT at constant SA and p. [ J/(kg K) ]
-   h_P          - the first partial derivative of specific enthalpy with
-                  respect to pressure (in Pa) at fixed SA and CT.
-                  Note that h_P is specific volume (1/rho). [ m^3/kg ]
-   sa_bulk      - bulk Absolute Salinity of the seawater and ice mixture [g/kg]
-   h_bulk       - bulk enthalpy of the seawater and ice mixture [ J/kg ]
-   sa_final     - Absolute Salinity of the seawater in the final state,
-                  whether or not any ice is present. [ g/kg ]
-   ct_final     - Conservative Temperature of the seawater in the the final
-                  state, whether or not any ice is present. [ deg C ]
-   w_Ih_final   - mass fraction of ice in the final seawater-ice mixture.
-                  If this ice mass fraction is positive, the system is at
-                  thermodynamic equilibrium.  If this ice mass fraction is
-                  zero there is no ice in the final state which consists
-                  only of seawater which is warmer than the freezing
-                  temperature. [unitless]
-   h_pot_bulk   - bulk potential enthalpy of the seawater and ice mixture [J/kg]
-   w_Ih         - mass fraction of ice, that is the mass of ice divided by the
-                  sum of the masses of ice and seawater.  That is, the mass of
-                  ice divided by the mass of the final mixed fluid.
-                  w_Ih must be between 0 and 1. [ unitless ]
-   dsa_dct_frazil - the ratio of the changes in Absolute Salinity
-                  to that of Conservative Temperature [ g/(kg K) ]
-   dsa_dp_frazil  - the ratio of the changes in Absolute Salinity
-                  to that of pressure (in Pa) [ g/(kg Pa) ]
-   dct_dp_frazil  - the ratio of the changes in Conservative Temperature
-                  to that of pressure (in Pa) [ K/Pa ]
-   pot_enthalpy_ice_freezing_SA - the derivative of the potential enthalpy
-                  of ice at freezing (ITS-90) with respect to Absolute
-                  salinity at fixed pressure  [ (J/kg)/(g/kg) ] i.e. [ J/g ]
-   pot_enthalpy_ice_freezing_P  - the derivative of the potential enthalpy
-                  of ice at freezing (ITS-90) with respect to pressure
-                  (in Pa) at fixed Absolute Salinity [ (J/kg)/Pa ]
-   pt_sa          - The derivative of potential temperature with respect to
-                  Absolute Salinity at constant Conservative Temperature.
-                  [ K/(g/kg)]
-   pt_ct          - The derivative of potential temperature with respect to
-                  Conservative Temperature at constant Absolute Salinity.
-                  pt_CT is dimensionless. [ unitless ]
-   rho            -  in-situ density [ kg/m^3 ]
-   alpha          -  thermal expansion coefficient [ 1/K ]
-                  with respect to Conservative Temperature
-   beta           -  saline contraction coefficient [ kg/g ]
-                  at constant Conservative Temperature
 """
 
 #path to precompiled teos-10 library (x64)
 if Sys.islinux()
-  const libgswteos = joinpath(@__DIR__, "libgswteos-10.so")
+  const libgswteos = joinpath(@__DIR__, "gsw/libgswteos-10.so")
 end
 if Sys.iswindows()
-  const libgswteos = joinpath(@__DIR__, "libgswteos-10.dll")
+  const libgswteos = joinpath(@__DIR__, "gsw/libgswteos-10.dll")
 end
 
-# Adds a barrier through Central America (Panama) and then averages over the appropriate side of the barrier
-#extern void   gsw_add_barrier(double *input_data, double lon, double lat, double long_grid, double lat_grid, double dlong_grid, double dlat_grid, double *output_data);
+
 function gsw_add_barrier(input_data, lon, lat, long_grid, lat_grid, dlong_grid, dlat_grid)
   ccall(("gsw_add_barrier",libgswteos),Cvoid,(Ptr{Cdouble},Cdouble,Cdouble,Cdouble,Cdouble,Cdouble,Cdouble,Ptr{Cdouble}),input_data,lon,lat,long_grid,lat_grid,dlong_grid,dlat_grid,output_data)
   return output_data[]
@@ -266,7 +187,7 @@ end
 
 # Conservative Temperature of maximum density of seawater
 #extern double gsw_ct_maxdensity(double sa, double p);
-function gsw_ct_maxdensityt(sa, p)::Cdouble
+function gsw_ct_maxdensity(sa, p)::Cdouble
   return ccall(("gsw_ct_maxdensity",libgswteos),Cdouble,(Cdouble,Cdouble),sa,p)
 end
 
@@ -460,6 +381,11 @@ function gsw_geo_strf_dyn_height(sa, ct, p, p_ref, n_levels, dyn_height)::Cdoubl
   return ccall(("gsw_geo_strf_dyn_height",libgswteos),Cdouble,(Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble},Cdouble,Int,Ptr{Cdouble}),sa, ct, p, p_ref, n_levels, dyn_height)
 end
 
+#extern int gsw_geo_strf_dyn_height_1(double *sa, double *ct, double *p, double p_ref, int n_levels, double *dyn_height, double max_dp_i, int interp_method);
+function gsw_geo_strf_dyn_height_1(sa, ct, p, p_ref, n_levels, dyn_height, max_dp_i, interp_method)::Cdouble
+  return ccall(("gsw_geo_strf_dyn_height_1",libgswteos),Int,(Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble},Cdouble,Int,Ptr{Cdouble},Cdouble, Int),sa, ct, p, p_ref, n_levels, dyn_height, max_dp_i, interp_method)
+end
+
 #
 #extern double *gsw_geo_strf_dyn_height_pc(double *sa, double *ct,double *delta_p, int n_levels, double *geo_strf_dyn_height_pc,double *p_mid);
 function gsw_geo_strf_dyn_height_pc(sa, ct, delta_p, n_levels, geo_strf_dyn_height_pc, p_mid)::Cdouble
@@ -539,13 +465,11 @@ function gsw_internal_energy_ice(t, p)::Cdouble
   return ccall(("gsw_internal_energy_ice",libgswteos),Cdouble,(Cdouble,Cdouble),t,p)
 end
 
-#
-#
-#
 #extern void   gsw_ipv_vs_fnsquared_ratio(double *sa, double *ct, double *p,double p_ref, int nz, double *ipv_vs_fnsquared_ratio,double *p_mid);
-#
-#
-#
+function gsw_ipv_vs_fnsquared_ratio(sa, ct, p, p_ref, nz)
+  ccall(("gsw_ipv_vs_fnsquared_ratio",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Cdouble, Int, Ptr{Cdouble}, Ptr{Cdouble}),sa, ct, p, p_ref, nz, ipv_vs_fnsquared_ratio, p_mid)
+  return ipv_vs_fnsquared_ratio[], p_mid[]
+end
 
 # Isothermal compressibility of ice
 #extern double gsw_kappa_const_t_ice(double t, double p);
@@ -589,13 +513,11 @@ function gsw_latentheat_melting(sa, p)::Cdouble
   return ccall(("gsw_latentheat_melting",libgswteos),Cdouble,(Cdouble,Cdouble),sa,p)
 end
 
-#
-#
-#
 #extern void   gsw_linear_interp_sa_ct(double *sa, double *ct, double *p, int np,double *p_i, int npi, double *sa_i, double *ct_i);
-#
-#
-#
+function gsw_linear_interp_sa_ct(sa, ct, p, np, p_i, npi)
+  ccall(("gsw_linear_interp_sa_ct",libgswteos),Cvoid,(Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}),ssa, ct, p, np, p_i, npi, sa_i, ct_i)
+  return sa_i[], ct[i]
+end
 
 # SA to CT ratio when ice melts into seawater near equilibrium
 #extern double gsw_melting_ice_equilibrium_sa_ct_ratio(double sa, double p);
@@ -659,13 +581,21 @@ function gsw_melting_seaice_sa_ct_ratio_poly(sa, ct, p, sa_seaice, t_seaice)::Cd
   return ccall(("gsw_melting_seaice_sa_ct_ratio_poly",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble,Cdouble,Cdouble),sa,ct,p,sa_seaice,t_seaice)
 end
 
-#
-#
-#
 #extern void   gsw_nsquared(double *sa, double *ct, double *p, double *lat,int nz, double *n2, double *p_mid);
-#
-#
-#
+function gsw_nsquared(sa,ct,p,lat,nz)
+  ccall(("gsw_nsquared",libgswteos),Cvoid,(Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}),sa,ct,p,lat,nz,n2,p_mld)
+  return n2[],p_mld[]
+end
+
+#extern double gsw_o2sol(double sa, double ct, double p, double lon, double lat);
+function gsw_o2sol(sa,ct,p,lon,lat)::Cdouble
+  return ccall(("gsw_o2sol",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble,Cdouble,Cdouble),sa,ct,p,lon,lat)
+end
+
+#extern double gsw_o2sol_sp_pt(double sp, double pt);
+function gsw_o2sol_sp_pt(sp,pt)::Cdouble
+  return ccall(("gsw_o2sol_sp_pt",libgswteos),Cdouble,(Cdouble,Cdouble),sp,pt)
+end
 
 # Potential enthalpy from potential temperature of ice
 #extern double gsw_pot_enthalpy_from_pt_ice(double pt0_ice);
@@ -810,14 +740,17 @@ function gsw_rho(sa, ct, p)::Cdouble
   return ccall(("gsw_rho",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble),sa,ct,p)
 end
 
-#
-#
-#
 #extern void   gsw_rho_first_derivatives(double sa, double ct, double p,double *drho_dsa, double *drho_dct, double *drho_dp);
+function gsw_rho_first_derivatives(sa, ct, p)
+  ccall(("gsw_rho_first_derivatives",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),sa, ct, p, drho_dsa, drho_dct, drho_dp)
+  return drho_dsa[], drho_dct[], drho_dp[]
+end
+
 #extern void   gsw_rho_first_derivatives_wrt_enthalpy (double sa, double ct,double p, double *rho_sa, double *rho_h);
-#
-#
-#
+function gsw_rho_first_derivatives_wrt_enthalpy(sa, ct, p)
+  ccall(("gsw_rho_first_derivatives_wrt_enthalpy",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}),sa, ct, p, rho_sa, rho_h)
+  return rho_sa[], rho_h[]
+end
 
 # in-situ density of ice
 #extern double gsw_rho_ice(double t, double p);
@@ -825,14 +758,17 @@ function gsw_rho_ice(t, p)::Cdouble
   return ccall(("gsw_rho_ice",libgswteos),Cdouble,(Cdouble,Cdouble),t,p)
 end
 
-#
-#
-#
 #extern void   gsw_rho_second_derivatives(double sa, double ct, double p,double *rho_sa_sa, double *rho_sa_ct, double *rho_ct_ct,double *rho_sa_p, double *rho_ct_p);
+function gsw_rho_second_derivatives(sa, ct, p)
+  ccall(("gsw_rho_second_derivatives",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),sa, ct, p, rho_sa_sa, rho_sa_ct, rho_ct_ct, rho_sa_p, rho_ct_p)
+  return rho_sa_sa[], rho_sa_ct[], rho_ct_ct[], rho_sa_p[], rho_ct_p[]
+end
+
 #extern void   gsw_rho_second_derivatives_wrt_enthalpy(double sa, double ct,double p, double *rho_sa_sa, double *rho_sa_h, double *rho_h_h);
-#
-#
-#
+function gsw_rho_second_derivatives_wrt_enthalpy(sa, ct, p)
+  ccall(("gsw_rho_second_derivatives_wrt_enthalpy",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),sa, ct, p, rho_sa_sa, rho_sa_h, rho_h_h)
+  return rho_sa_sa[], rho_sa_h[], rho_h_h[]
+end
 
 # in-situ density (Laboratory function, for use with densimeter measurements)
 #extern double gsw_rho_t_exact(double sa, double t, double p);
@@ -840,13 +776,11 @@ function gsw_rho_t_exact(sa, t, p)::Cdouble
   return ccall(("gsw_rho_t_exact",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble),sa,t,p)
 end
 
-#
-#
-#
 #extern void   gsw_rr68_interp_sa_ct(double *sa, double *ct, double *p, int mp,double *p_i, int mp_i, double *sa_i, double *ct_i);
-#
-#
-#
+function gsw_rr68_interp_sa_ct(sa, ct, p, mp, p_i, mp_i)
+  ccall(("gsw_rr68_interp_sa_ct",libgswteos),Cvoid,(Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}), sa, ct, p, mp, p_i, mp_i, sa_i, ct_i)
+  return sa_i[], ct_i[]
+end
 
 # Absolute Salinity Anomaly Ratio (excluding the Baltic Sea)
 #extern double gsw_saar(double p, double lon, double lat);
@@ -913,13 +847,11 @@ function gsw_sa_p_inrange(sa, p)::Int
   return ccall(("gsw_sa_p_inrange",libgswteos),Int,(Cdouble,Cdouble),sa,p)
 end
 
-#
-#
-#
 #extern void   gsw_seaice_fraction_to_freeze_seawater(double sa, double ct,double p, double sa_seaice, double t_seaice, double *sa_freeze,double *ct_freeze, double *w_seaice);
-#
-#
-#
+function gsw_seaice_fraction_to_freeze_seawater(sa, ct, p, sa_seaice, t_seaice)
+  ccall(("gsw_seaice_fraction_to_freeze_seawater",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),sa, ct, p, sa_seaice, t_seaice, sa_freeze, ct_freeze, w_seaice)
+  return sa_freeze[], ct_freeze[], w_seaice[]
+end
 
 # sigma0 with reference pressure of 0 dbar
 #extern double gsw_sigma0(double sa, double ct);
@@ -957,6 +889,11 @@ function gsw_sa_from_rho(sa, ct, p)::Cdouble
   return ccall(("gsw_sa_from_rho",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble),sa,ct,p)
 end
 
+#extern double gsw_sound_speed(double sa, double ct, double p);
+function gsw_sound_speed(sa, ct, p)::Cdouble
+  return ccall(("gsw_sound_speed",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble),sa,ct,p)
+end
+
 # Sound speed of ice (compression waves)
 #extern double gsw_sound_speed_ice(double t, double p);
 function gsw_sound_speed_ice(t, p)::Cdouble
@@ -969,13 +906,11 @@ function gsw_sound_speed_t_exact(sa, t, p)::Cdouble
   return ccall(("gsw_sound_speed_t_exact",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble),sa,t,p)
 end
 
-#
-#
-#
 #extern void   gsw_specvol_alpha_beta(double sa, double ct, double p,double *specvol, double *alpha, double *beta);
-#
-#
-#
+function gsw_specvol_alpha_beta(sa, ct, p)
+  ccall(("gsw_specvol_alpha_beta",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), sa, ct, p, specvol, alpha, beta)
+  return specvol[], alpha[], beta[]
+end
 
 # Specific volume anomaly relative to SSO & 0°C
 #extern double gsw_specvol_anom_standard(double sa, double ct, double p);
@@ -989,14 +924,17 @@ function gsw_specvol(sa, ct, p)::Cdouble
   return ccall(("gsw_specvol",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble),sa,ct,p)
 end
 
-#
-#
-#
 #extern void   gsw_specvol_first_derivatives(double sa, double ct, double p,double *v_sa, double *v_ct, double *v_p);
+function gsw_specvol_first_derivatives(sa, ct, p)
+  ccall(("gsw_specvol_first_derivatives",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), sa, ct, p, v_sa, v_ct, v_p)
+  return v_sa[], v_ct[], v_p[]
+end
+
 #extern void   gsw_specvol_first_derivatives_wrt_enthalpy(double sa, double ct,double p, double *v_sa, double *v_h);
-#
-#
-#
+function gsw_specvol_first_derivatives_wrt_enthalpy(sa, ct, p)
+  ccall(("gsw_specvol_first_derivatives_wrt_enthalpy",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), sa, ct, p, v_sa, v_h)
+  return v_sa[], v_h[]
+end
 
 # Specific volume of ice
 #extern double gsw_specvol_ice(double t, double p);
@@ -1004,14 +942,17 @@ function gsw_specvol_ice(t, p)::Cdouble
   return ccall(("gsw_specvol_ice",libgswteos),Cdouble,(Cdouble,Cdouble),t,p)
 end
 
-#
-#
-#
 #extern void   gsw_specvol_second_derivatives (double sa, double ct, double p,double *v_sa_sa, double *v_sa_ct, double *v_ct_ct,double *v_sa_p, double *v_ct_p);
+function gsw_specvol_second_derivatives(sa, ct, p)
+  ccall(("gsw_specvol_second_derivatives",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),sa, ct, p, v_sa_sa, v_sa_ct, v_ct_ct, v_sa_p, v_ct_p)
+  return v_sa_sa[], v_sa_ct[], v_ct_ct[], v_sa_p[], v_ct_p[]
+end
+
 #extern void   gsw_specvol_second_derivatives_wrt_enthalpy(double sa, double ct,double p, double *v_sa_sa, double *v_sa_h, double *v_h_h);
-#
-#
-#
+function gsw_specvol_second_derivatives_wrt_enthalpy(sa, ct, p)
+  ccall(("gsw_specvol_second_derivatives_wrt_enthalpy",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),sa, ct, p, v_sa_sa, v_sa_h, v_h_h)
+  return v_sa_sa[], v_sa_h[], v_h_h[]
+end
 
 # Specific volume specvol(35.16504,0,p)
 #extern double gsw_specvol_sso_0(double p);
@@ -1059,6 +1000,11 @@ end
 #extern double gsw_sp_from_sstar(double sstar, double p,double lon,double lat);
 function gsw_sp_from_sstar(sstar, p, lon, lat)::Cdouble
   return ccall(("gsw_sp_from_sstar",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble,Cdouble),sstar,p,lon,lat)
+end
+
+#extern double gsw_sp_salinometer(double rt, double t);
+function gsw_sp_salinometer(rt, t)::Cdouble
+  return ccall(("gsw_sp_salinometer",libgswteos),Cdouble,(Cdouble,Cdouble),rt,t)
 end
 
 # Spiciness with p_ref of 0 dbar
@@ -1109,14 +1055,17 @@ function gsw_t_freezing(sa, p, saturation_fraction)::Cdouble
   return ccall(("gsw_t_freezing",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble),sa,p,saturation_fraction)
 end
 
-#
-#
-#
 #extern void   gsw_t_freezing_first_derivatives_poly(double sa, double p,double saturation_fraction, double *tfreezing_sa,double *tfreezing_p);
+function gsw_t_freezing_first_derivatives_poly(sa, p, saturation_fraction)
+  ccall(("gsw_t_freezing_first_derivatives_poly",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}),sa,p,saturation_fraction,tfreezing_sa,freezing_p)
+  return tfreezing_sa[],freezing_p[]
+end
+
 #extern void   gsw_t_freezing_first_derivatives(double sa, double p,double saturation_fraction, double *tfreezing_sa,double *tfreezing_p);
-#
-#
-#
+function gsw_t_freezing_first_derivatives(sa, p, saturation_fraction)
+  ccall(("gsw_t_freezing_first_derivatives",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}),sa,p,saturation_fraction,tfreezing_sa,freezing_p)
+  return tfreezing_sa[],freezing_p[]
+end
 
 # in-situ freezing temperature of seawater (polynomial)
 #extern double gsw_t_freezing_poly(double sa, double p,double saturation_fraction);
@@ -1142,13 +1091,11 @@ function gsw_thermobaric(sa, ct, p)::Cdouble
   return ccall(("gsw_thermobaric",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble),sa,ct,p)
 end
 
-#
-#
-#
 #extern void   gsw_turner_rsubrho(double *sa, double *ct, double *p, int nz,double *tu, double *rsubrho, double *p_mid);
-#
-#
-#
+function gsw_turner_rsubrho(rarray, nx, iarray)
+  ccall(("gsw_turner_rsubrho",libgswteos),Cvoid,(Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), rarray, nx, iarray)
+  return iarray[]
+end
 
 #
 #extern int    gsw_util_indx(double *x, int n, double z);
@@ -1156,22 +1103,31 @@ function gsw_util_indx(x, n, z)::Int
   return ccall(("gsw_util_indx",libgswteos),Int,(Ptr{Cdouble},Int,Cdouble),x, n, z)
 end
 
-#
 #extern double *gsw_util_interp1q_int(int nx, double *x, int *iy, int nxi,double *x_i, double *y_i);
+function gsw_util_interp1q_int(nx, x, iy, nxi)
+  return ccall(("gsw_util_interp1q_int",libgswteos),Cdouble,(Int, Ptr{Cdouble}, Ptr{Int}, Int, Ptr{Cdouble}, Ptr{Cdouble}), nx, x, iy, nxi, x_i, y_i)
+end
+
 #extern double *gsw_util_linear_interp(int nx, double *x, int ny, double *y,int nxi, double *x_i, double *y_i);
+function gsw_util_linear_interp(nx, x, ny, y, nxi)
+  return ccall(("gsw_util_linear_interp",libgswteos),Cdouble,(Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}), nx, x, ny, y, nxi, x_i, y_i)
+end
 
-#
-#
-#
 #extern void   gsw_util_sort_real(double *rarray, int nx, int *iarray);
-#
-#
-#
+function gsw_util_sort_real(rarray, nx, iarray)
+  ccall(("gsw_util_sort_real",libgswteos),Cvoid,(Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), rarray, nx, iarray)
+  return iarray[]
+end
 
-#
 #extern double gsw_util_xinterp1(double *x, double *y, int n, double x0);
 function gsw_util_xinterp1(x, y, n, x0)::Cdouble
   return ccall(("gsw_util_xinterp1",libgswteos),Cdouble,(Ptr{Cdouble},Ptr{Cdouble}, Int, Cdouble),x, y, n, x0)
+end
+
+
+#extern int gsw_util_pchip_interp(double *x, double *y, int n,double *xi, double *yi, int ni);
+function gsw_util_pchip_interp(x, y, n, xi, yi, ni)::Cdouble
+  return ccall(("gsw_util_pchip_interp",libgswteos),Int,(Ptr{Cdouble},Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble), x, y, n, xi, yi, ni)
 end
 
 # Height from pressure
