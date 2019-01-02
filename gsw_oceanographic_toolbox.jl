@@ -97,8 +97,11 @@ function gsw_chem_potential_water_t_exact(sa, t, p)::Cdouble
   return ccall(("gsw_chem_potential_water_t_exact",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble),sa,t,p)
 end
 
-# Isobaric heat capacity of ice
+"""
+    gsw_cp_ice(t, p)
+Isobaric heat capacity of ice
 #extern double gsw_cp_ice(double t, double p);
+"""
 function gsw_cp_ice(t, p)::Cdouble
   return ccall(("gsw_cp_ice",libgswteos),Cdouble,(Cdouble,Cdouble),t,p)
 end
@@ -1105,42 +1108,123 @@ end
 
 #extern double *gsw_util_interp1q_int(int nx, double *x, int *iy, int nxi,double *x_i, double *y_i);
 function gsw_util_interp1q_int(nx, x, iy, nxi)
-  return ccall(("gsw_util_interp1q_int",libgswteos),Cdouble,(Int, Ptr{Cdouble}, Ptr{Int}, Int, Ptr{Cdouble}, Ptr{Cdouble}), nx, x, iy, nxi, x_i, y_i)
+  return ccall(("gsw_util_interp1q_int",libgswteos),Cdouble,
+  (Int, Ptr{Cdouble}, Ptr{Int}, Int, Ptr{Cdouble}, Ptr{Cdouble}),
+  nx, x, iy, nxi, x_i, y_i)
 end
 
-#extern double *gsw_util_linear_interp(int nx, double *x, int ny, double *y,int nxi, double *x_i, double *y_i);
+
+"""
+    gsw_util_linear_interp(nx, x, ny, y, nxi)
+
+Returns the values of the functions y{ny} at the points of column
+vector x_i using linear interpolation. The vector x specifies the
+coordinates of the underlying interval, and the matrix y specifies
+the function values at each x coordinate. Note that y has dimensions
+nx x ny and y_i has dimensions nxi x ny.
+This function was adapted from Matlab's interp1q.
+
+double *gsw_util_linear_interp(int nx, double *x, int ny, double *y,
+int nxi, double *x_i, double *y_i);
+"""
 function gsw_util_linear_interp(nx, x, ny, y, nxi)
-  return ccall(("gsw_util_linear_interp",libgswteos),Cdouble,(Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}), nx, x, ny, y, nxi, x_i, y_i)
+  return ccall(("gsw_util_linear_interp",libgswteos),Cdouble,
+  (Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}),
+  nx, x, ny, y, nxi, x_i, y_i)
 end
 
-#extern void   gsw_util_sort_real(double *rarray, int nx, int *iarray);
+
+"""
+    gsw_util_sort_real(rarray, nx, iarray)
+
+Sort the double array rarray into ascending value sequence
+returning an index array of the sorted result.  This function
+is thread-safe.
+
+void gsw_util_sort_real(double *rarray, int nx, int *iarray)
+"""
 function gsw_util_sort_real(rarray, nx, iarray)
-  ccall(("gsw_util_sort_real",libgswteos),Cvoid,(Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), rarray, nx, iarray)
+  ccall(("gsw_util_sort_real",libgswteos),Cvoid,
+  (Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), rarray, nx, iarray)
   return iarray[]
 end
 
-#extern double gsw_util_xinterp1(double *x, double *y, int n, double x0);
+
+"""
+    gsw_util_xinterp1(x,y,n,x0)
+
+Linearly interpolate a real array
+x      : y array (Must be monotonic)
+y      : y array
+n      : length of X and Y arrays
+x0     : value to be interpolated
+gsw_xinterp1 : Linearly interpolated value
+
+double gsw_util_xinterp1(double *x, double *y, int n, double x0)
+"""
 function gsw_util_xinterp1(x, y, n, x0)::Cdouble
-  return ccall(("gsw_util_xinterp1",libgswteos),Cdouble,(Ptr{Cdouble},Ptr{Cdouble}, Int, Cdouble),x, y, n, x0)
+  return ccall(("gsw_util_xinterp1",libgswteos),Cdouble,
+  (Ptr{Cdouble},Ptr{Cdouble}, Int, Cdouble),x, y, n, x0)
 end
 
 
-#extern int gsw_util_pchip_interp(double *x, double *y, int n,double *xi, double *yi, int ni);
-function gsw_util_pchip_interp(x, y, n, xi, yi, ni)::Cdouble
-  return ccall(("gsw_util_pchip_interp",libgswteos),Int,(Ptr{Cdouble},Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble), x, y, n, xi, yi, ni)
+"""
+    gsw_util_pchip_interp(x, y, n, xi, yi, ni)
+
+Piecewise-Hermite algorithm from
+https://en.wikipedia.org/wiki/Cubic_Hermite_spline
+
+Extrapolation to points outside the range is done by setting those
+points to the corresponding end values.
+
+The input x must be monotonically increasing; the interpolation points,
+xi, may be in any order, but the algorithm will be faster if they are
+monotonic, increasing or decreasing.
+
+Returns 0 on success, 1 if it fails because there are fewer than 2 points,
+2 if it fails because x is not increasing.
+Consistent with other GSW-C code at present, the memory allocations
+are assumed to succeed.
+
+int gsw_util_pchip_interp(double *x, double *y, int n,
+                          double *xi, double *yi, int ni)
+"""
+function gsw_util_pchip_interp(x, y, n, xi, yi, ni)::Int
+  return ccall(("gsw_util_pchip_interp",libgswteos),Int,
+  (Ptr{Cdouble},Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble),
+  x, y, n, xi, yi, ni)
 end
 
-# Height from pressure
-#extern double gsw_z_from_p(double p, double lat);
+
+"""
+    gsw_z_from_p(p,lat)
+
+Calculates the height z from pressure p
+p      : sea pressure                                    [dbar]
+lat    : latitude                                        [deg]
+gsw_z_from_p : height                                    [m]
+
+double gsw_z_from_p(double p, double lat)
+"""
 function gsw_z_from_p(p, lat)::Cdouble
   return ccall(("gsw_z_from_p",libgswteos),Cdouble,(Cdouble,Cdouble),p,lat)
 end
 
-# Pressure from height
-#extern double gsw_p_from_z(double z, double lat);
+
+"""
+    gsw_p_from_z(z,lat)
+
+Calculates the pressure p from height z
+z      : height                                          [m]
+lat    : latitude                                        [deg]
+gsw_p_from_z : pressure                                  [dbar]
+
+double gsw_p_from_z(double z, double lat)
+"""
 function gsw_p_from_z(z, lat)::Cdouble
   return ccall(("gsw_p_from_z",libgswteos),Cdouble,(Cdouble,Cdouble),z,lat)
 end
+
 
 """
 Copyright (C) 2018 Alexander Smirnov (axline@mail.ru)
