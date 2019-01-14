@@ -1,3 +1,4 @@
 backup/
 tmp/
-gsw_c_julia_check.jl
+runtests.jl
+REQUIRE
