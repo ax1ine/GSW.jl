@@ -1,0 +1,15 @@
+name = "GSW"
+uuid = "ac8313d0-1bdb-11e9-3da9-53be6eb7f00a"
+authors = ["axline <axline@mail.ru>"]
+version = "0.1.0"
+
+[deps]
+
+[compat]
+julia = "1.0"
+
+[extras]
+NCDatasets = "85f8d34a-cbdd-5861-8df4-14fed0d494ab"
+
+[targets]
+test = ["NCDatasets"]

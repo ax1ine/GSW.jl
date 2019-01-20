@@ -1,15 +1,18 @@
+module GSW
+
 """
 Gibbs SeaWater (GSW) Oceanographic Toolbox of TEOS-10
 Documentation: http://www.teos-10.org/pubs/gsw/html/gsw_contents.html
 These declarations facilitate the use of TEOS-10 functions with Julia 1.0
 """
 
+
 #path to precompiled teos-10 library (x64)
 if Sys.islinux()
-  const libgswteos = joinpath(@__DIR__, "gsw\\libgswteos-10.so")
+  const libgswteos = joinpath(dirname(pathof(GSW)), "gsw\\libgswteos-10.so")
 end
 if Sys.iswindows()
-  const libgswteos = joinpath(@__DIR__, "gsw\\libgswteos-10.dll")
+  const libgswteos = joinpath(dirname(pathof(GSW)), "gsw\\libgswteos-10.dll")
 end
 
 
@@ -343,7 +346,7 @@ potential temperature (the regular one with pr = 0 dbar)
 at constant SA. CT_pt is dimensionless.           [ unitless ]
 """
 function gsw_ct_first_derivatives(sa, pt)
-  ccall(("gsw_ct_first_derivatives",libgswteos),Cvoid,(Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}),sa,pt,ct_sa,ct_pt)
+  ccall(("gsw_ct_first_derivatives",libgswteos),Cvoid,(Cdouble,Cdouble,Ptr{Cdouble},Ptr{Cdouble}),sa,pt,ct_sa,ct_pt)
   return ct_sa[], ct_pt[]
 end
 
@@ -383,7 +386,7 @@ respect to pressure P (in Pa) at constant SA and t.
 [ K/Pa ]
 """
 function gsw_ct_first_derivatives_wrt_t_exact(sa, t, p)
-  ccall(("gsw_ct_first_derivatives_wrt_t_exact",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),sa,t,p,ct_sa_wrt_t,ct_t_wrt_t,ct_p_wrt_t)
+  ccall(("gsw_ct_first_derivatives_wrt_t_exact",libgswteos),Cvoid,(Cdouble,Cdouble,Cdouble,Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble}),sa,t,p,ct_sa_wrt_t,ct_t_wrt_t,ct_p_wrt_t)
   return ct_sa_wrt_t[], ct_t_wrt_t[], ct_p_wrt_t[]
 end
 
@@ -1382,7 +1385,7 @@ vertical profile, the dynamic height anomaly for each bottle
 on the whole vertical profile is returned as NaN.
 """
 function gsw_geo_strf_dyn_height(sa, ct, p, p_ref, n_levels, dyn_height)
-  return ccall(("gsw_geo_strf_dyn_height",libgswteos),Cdouble,(Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble},Cdouble,Int,Ptr{Cdouble}),sa, ct, p, p_ref, n_levels, dyn_height)
+  return ccall(("gsw_geo_strf_dyn_height",libgswteos),Cdouble,(Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble},Cdouble,Cint,Ptr{Cdouble}),sa, ct, p, p_ref, n_levels, dyn_height)
 end
 
 
@@ -1424,7 +1427,7 @@ Note. If p_ref falls outside the range of a vertical profile, the dynamic height
 anomaly for each bottle on the whole vertical profile is returned as NaN.
 """
 function gsw_geo_strf_dyn_height_1(sa, ct, p, p_ref, n_levels, dyn_height, max_dp_i, interp_method)
-  return ccall(("gsw_geo_strf_dyn_height_1",libgswteos),Int,(Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble},Cdouble,Int,Ptr{Cdouble},Cdouble, Int),sa, ct, p, p_ref, n_levels, dyn_height, max_dp_i, interp_method)
+  return ccall(("gsw_geo_strf_dyn_height_1",libgswteos),Cint,(Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble},Cdouble,Cint,Ptr{Cdouble},Cdouble, Cint),sa, ct, p, p_ref, n_levels, dyn_height, max_dp_i, interp_method)
 end
 
 
@@ -1461,7 +1464,7 @@ geo_strf_dyn_height_pc =  dynamic height anomaly             [ m^2/s^2 ]
 p_mid                  =  mid-point pressure in each layer      [ dbar ]
 """
 function gsw_geo_strf_dyn_height_pc(sa, ct, delta_p, n_levels, geo_strf_dyn_height_pc, p_mid)
-  return ccall(("gsw_geo_strf_dyn_height_pc",libgswteos),Cdouble,(Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble},Int,Ptr{Cdouble},Ptr{Cdouble}),sa, ct, delta_p, n_levels, geo_strf_dyn_height_pc, p_mid)
+  return ccall(("gsw_geo_strf_dyn_height_pc",libgswteos),Cdouble,(Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble},Cint,Ptr{Cdouble},Ptr{Cdouble}),sa, ct, delta_p, n_levels, geo_strf_dyn_height_pc, p_mid)
 end
 
 
@@ -1487,7 +1490,7 @@ Note. The derivatives are taken with respect to pressure in Pa, not
 withstanding that the pressure input into this routine is in dbar.
 """
 function gsw_gibbs_ice(nt, np, t, p)
-  return ccall(("gsw_gibbs_ice",libgswteos),Cdouble,(Int,Int,Cdouble,Cdouble),nt,np,t,p)
+  return ccall(("gsw_gibbs_ice",libgswteos),Cdouble,(Cint,Cint,Cdouble,Cdouble),nt,np,t,p)
 end
 
 
@@ -1553,7 +1556,7 @@ p      : sea pressure                                    [dbar]
 gsw_gibbs  : specific Gibbs energy or its derivative     [J kg  ]
 """
 function gsw_gibbs(ns, nt, np, sa, t, p)
-  return ccall(("gsw_gibbs",libgswteos),Cdouble,(Int,Int,Int,Cdouble,Cdouble,Cdouble),ns,nt,np,sa,t,p)
+  return ccall(("gsw_gibbs",libgswteos),Cdouble,(Cint,Cint,Cint,Cdouble,Cdouble,Cdouble),ns,nt,np,sa,t,p)
 end
 
 
@@ -1719,7 +1722,7 @@ IPV_vs_fNsquared_ratio is dimensionless.          [ unitless ]
 p_mid   : Mid pressure between p grid  (length nz-1)           [dbar]
 """
 function gsw_ipv_vs_fnsquared_ratio(sa, ct, p, p_ref, nz)
-  ccall(("gsw_ipv_vs_fnsquared_ratio",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Cdouble, Int, Ptr{Cdouble}, Ptr{Cdouble}),sa, ct, p, p_ref, nz, ipv_vs_fnsquared_ratio, p_mid)
+  ccall(("gsw_ipv_vs_fnsquared_ratio",libgswteos),Cvoid,(Cdouble, Cdouble, Cdouble, Cdouble, Cint, Ptr{Cdouble}, Ptr{Cdouble}),sa, ct, p, p_ref, nz, ipv_vs_fnsquared_ratio, p_mid)
   return ipv_vs_fnsquared_ratio[], p_mid[]
 end
 
@@ -1850,7 +1853,7 @@ VERSION NUMBER: 3.05 (27th January 2015)
 This function was adapted from Matlab's interp1q.
 """
 function gsw_linear_interp_sa_ct(sa, ct, p, np, p_i, npi)
-  ccall(("gsw_linear_interp_sa_ct",libgswteos),Cvoid,(Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}),ssa, ct, p, np, p_i, npi, sa_i, ct_i)
+  ccall(("gsw_linear_interp_sa_ct",libgswteos),Cvoid,(Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}),ssa, ct, p, np, p_i, npi, sa_i, ct_i)
   return sa_i[], ct[i]
 end
 
@@ -2252,7 +2255,7 @@ n2     : Brunt-Vaisala Frequency squared  (length nz-1)        [s^-2]
 p_mid  : Mid pressure between p grid      (length nz-1)        [dbar]
 """
 function gsw_nsquared(sa,ct,p,lat,nz)
-  ccall(("gsw_nsquared",libgswteos),Cvoid,(Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}),sa,ct,p,lat,nz,n2,p_mld)
+  ccall(("gsw_nsquared",libgswteos),Cvoid,(Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}),sa,ct,p,lat,nz,n2,p_mld)
   return n2[],p_mld[]
 end
 
@@ -2927,7 +2930,7 @@ SA_i = interpolated SA values at pressures p_i.
 CT_i = interpolated CT values at pressures p_i.
 """
 function gsw_rr68_interp_sa_ct(sa, ct, p, mp, p_i, mp_i)
-  ccall(("gsw_rr68_interp_sa_ct",libgswteos),Cvoid,(Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}), sa, ct, p, mp, p_i, mp_i, sa_i, ct_i)
+  ccall(("gsw_rr68_interp_sa_ct",libgswteos),Cvoid,(Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}), sa, ct, p, mp, p_i, mp_i, sa_i, ct_i)
   return sa_i[], ct_i[]
 end
 
@@ -3134,7 +3137,7 @@ p   =  sea pressure                                             [ dbar ]
 ( i.e. absolute pressure - 10.1325 dbar )
 """
 function gsw_sa_p_inrange(sa, p)
-  return ccall(("gsw_sa_p_inrange",libgswteos),Int,(Cdouble,Cdouble),sa,p)
+  return ccall(("gsw_sa_p_inrange",libgswteos),Cint,(Cdouble,Cdouble),sa,p)
 end
 
 
@@ -3263,25 +3266,6 @@ sigma4  : potential density anomaly with reference pressure of 4000
 """
 function gsw_sigma4(sa, ct)
   return ccall(("gsw_sigma4",libgswteos),Cdouble,(Cdouble,Cdouble),sa,ct)
-end
-
-
-"""
-    gsw_sa_from_rho(sa, ct, p)
-
-Calculates the Absolute Salinity of a seawater sample, for given values
-of its density, Conservative Temperature and sea pressure (in dbar).
-
-rho =  density of a seawater sample (e.g. 1026 kg/m^3).       [ kg/m^3 ]
-Note. This input has not had 1000 kg/m^3 subtracted from it.
-That is, it is 'density', not 'density anomaly'.
-ct  =  Conservative Temperature (ITS-90)                      [ deg C ]
-p   =  sea pressure                                           [ dbar ]
-
-sa  =  Absolute Salinity                                      [g/kg]
-"""
-function gsw_sa_from_rho(sa, ct, p)
-  return ccall(("gsw_sa_from_rho",libgswteos),Cdouble,(Cdouble,Cdouble,Cdouble),sa,ct,p)
 end
 
 
@@ -3997,7 +3981,7 @@ K      : index K - if X(K) <= Z < X(K+1), or
 N-1                      - if Z = X(N)
 """
 function gsw_util_indx(x, n, z)
-  return ccall(("gsw_util_indx",libgswteos),Int,(Ptr{Cdouble},Int,Cdouble),x, n, z)
+  return ccall(("gsw_util_indx",libgswteos),Cint,(Ptr{Cdouble},Cint,Cdouble),x, n, z)
 end
 
 
@@ -4009,7 +3993,7 @@ vector x_i using linear interpolation. The vector x specifies the
 coordinates of the underlying interval.
 """
 function gsw_util_interp1q_int(nx, x, iy, nxi)
-  return ccall(("gsw_util_interp1q_int",libgswteos),Cdouble,(Int, Ptr{Cdouble}, Ptr{Int}, Int, Ptr{Cdouble}, Ptr{Cdouble}),nx, x, iy, nxi, x_i, y_i)
+  return ccall(("gsw_util_interp1q_int",libgswteos),Cdouble,(Cint, Ptr{Cdouble}, Ptr{Cint}, Cint, Ptr{Cdouble}, Ptr{Cdouble}),nx, x, iy, nxi, x_i, y_i)
 end
 
 
@@ -4024,7 +4008,7 @@ nx x ny and y_i has dimensions nxi x ny.
 This function was adapted from Matlab's interp1q.
 """
 function gsw_util_linear_interp(nx, x, ny, y, nxi)
-  return ccall(("gsw_util_linear_interp",libgswteos),Cdouble,(Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}),nx, x, ny, y, nxi, x_i, y_i)
+  return ccall(("gsw_util_linear_interp",libgswteos),Cdouble,(Cint, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}),nx, x, ny, y, nxi, x_i, y_i)
 end
 
 
@@ -4053,7 +4037,7 @@ x0     : value to be interpolated
 gsw_xinterp1 : Linearly interpolated value
 """
 function gsw_util_xinterp1(x, y, n, x0)
-  return ccall(("gsw_util_xinterp1",libgswteos),Cdouble,(Ptr{Cdouble},Ptr{Cdouble}, Int, Cdouble),x, y, n, x0)
+  return ccall(("gsw_util_xinterp1",libgswteos),Cdouble,(Ptr{Cdouble},Ptr{Cdouble}, Cint, Cdouble),x, y, n, x0)
 end
 
 
@@ -4076,7 +4060,7 @@ Consistent with other GSW-C code at present, the memory allocations
 are assumed to succeed.
 """
 function gsw_util_pchip_interp(x, y, n, xi, yi, ni)
-  return ccall(("gsw_util_pchip_interp",libgswteos),Int,(Ptr{Cdouble},Ptr{Cdouble}, Int, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble),x, y, n, xi, yi, ni)
+  return ccall(("gsw_util_pchip_interp",libgswteos),Cint,(Ptr{Cdouble},Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble),x, y, n, xi, yi, ni)
 end
 
 
@@ -4119,3 +4103,6 @@ This program is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.
 """
+
+
+end # module
