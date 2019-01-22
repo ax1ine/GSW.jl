@@ -9,15 +9,15 @@ These declarations facilitate the use of TEOS-10 functions with Julia 1.0
 
 #path to precompiled teos-10 library (x64)
 if Sys.islinux()
-  const libgswteos = joinpath(dirname(pathof(GSW)), "gsw\\libgswteos-10.so")
+  const libgswteos = joinpath(dirname(pathof(GSW)), "..", "gsw\\libgswteos-10.so")
 end
 if Sys.iswindows()
-  const libgswteos = joinpath(dirname(pathof(GSW)), "gsw\\libgswteos-10.dll")
+  const libgswteos = joinpath(dirname(pathof(GSW)), "..", "gsw\\libgswteos-10.dll")
 end
 
 
 """
-    gsw_add_barrier(input_data, lon, lat, long_grid, lat_grid, dlong_grid, dlat_grid)
+    output_data = gsw_add_barrier(input_data, lon, lat, long_grid, lat_grid, dlong_grid, dlat_grid)
 
 Adds a barrier through Central America (Panama) and then averages
 over the appropriate side of the barrier
@@ -34,20 +34,30 @@ output_data  : average of data depending on which side of the
 Panama canal it is on                         [unitless]
 """
 function gsw_add_barrier(input_data, lon, lat, long_grid, lat_grid, dlong_grid, dlat_grid)
-  ccall(("gsw_add_barrier",libgswteos),Cvoid,(Ptr{Cdouble},Cdouble,Cdouble,Cdouble,Cdouble,Cdouble,Cdouble,Ptr{Cdouble}),input_data,lon,lat,long_grid,lat_grid,dlong_grid,dlat_grid,output_data)
+  ccall(
+      ("gsw_add_barrier",libgswteos),
+      Cvoid,
+      (Ptr{Cdouble},Cdouble,Cdouble,Cdouble,Cdouble,Cdouble,Cdouble,Ptr{Cdouble}),
+      input_data,lon,lat,long_grid,lat_grid,dlong_grid,dlat_grid,output_data
+  )
   return output_data[]
 end
 
 
 """
-    gsw_add_mean(data_in)
+    data_out = gsw_add_mean(data_in)
 
 Replaces NaN's with non-nan mean of the 4 adjacent neighbours
 data_in   : data set of the 4 adjacent neighbours
 data_out : non-nan mean of the 4 adjacent neighbours     [unitless]
 """
 function gsw_add_mean(data_in)
-  ccall(("gsw_add_mean",libgswteos),Cvoid,(Ptr{Cdouble},Ptr{Cdouble}),data_in,data_out)
+  ccall(
+      ("gsw_add_mean",libgswteos),
+      Cvoid,
+      (Ptr{Cdouble},Ptr{Cdouble}),
+      data_in,data_out
+  )
   return data_out[]
 end
 
