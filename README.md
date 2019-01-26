@@ -22,7 +22,7 @@ Temperature, using the computationally-efficient expression for
 specific volume in terms of SA, CT and p (Roquet et al., 2014).
 
 ```
-  using GSW
+  using GibbsSeaWater
   rho = gsw_rho(sa, ct, p)
 ```
 
