@@ -1,11 +1,10 @@
-module GSW
+module GibbsSeaWater
 
 """
 Gibbs SeaWater (GSW) Oceanographic Toolbox of TEOS-10
 Documentation: http://www.teos-10.org/pubs/gsw/html/gsw_contents.html
 These declarations facilitate the use of TEOS-10 functions with Julia 1.0
 """
-
 
 #path to precompiled teos-10 library (x64)
 if Sys.islinux()
