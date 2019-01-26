@@ -1,6 +1,4 @@
-using GSW
-using NCDatasets
-
+using GibbsSeaWater
 
 function RunTests()
   @show "ok"
