@@ -1,7 +1,7 @@
 name = "GibbsSeaWater"
 uuid = "ac8313d0-1bdb-11e9-3da9-53be6eb7f00a"
 authors = ["axline <axline@mail.ru>"]
-version = "0.1.0"
+version = "0.0.1"
 
 [compat]
 julia = "1.0"
