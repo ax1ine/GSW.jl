@@ -1,4 +1,4 @@
-using gsw
+using GSW
 
 function RunTests()
   @show "ok"
