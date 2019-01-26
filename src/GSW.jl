@@ -1,4 +1,4 @@
-module GibbsSeaWater
+module GSW
 
 """
 Gibbs SeaWater (GSW) Oceanographic Toolbox of TEOS-10
@@ -8,10 +8,10 @@ These declarations facilitate the use of TEOS-10 functions with Julia 1.0
 
 #path to precompiled teos-10 library (x64)
 if Sys.islinux()
-  const libgswteos = joinpath(dirname(pathof(GibbsSeaWater)), "..", "gsw\\libgswteos-10.so")
+  const libgswteos = joinpath(dirname(pathof(GSW)), "..", "gsw\\libgswteos-10.so")
 end
 if Sys.iswindows()
-  const libgswteos = joinpath(dirname(pathof(GibbsSeaWater)), "..", "gsw\\libgswteos-10.dll")
+  const libgswteos = joinpath(dirname(pathof(GSW)), "..", "gsw\\libgswteos-10.dll")
 end
 
 

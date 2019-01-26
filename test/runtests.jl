@@ -1,4 +1,4 @@
-using GibbsSeaWater
+using gsw
 
 function RunTests()
   @show "ok"

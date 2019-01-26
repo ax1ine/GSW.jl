@@ -1,4 +1,4 @@
-# GibbsSeaWater.jl
+# GSW.jl
 
 This Julia implementation of the Thermodynamic Equation of Seawater 2010 (TEOS-10) is based primarily on wrappers of the [GSW-C implementation](https://github.com/TEOS-10/GSW-C).
 
@@ -13,7 +13,7 @@ McDougall, T.J. and P.M. Barker, 2011: Getting started with TEOS-10 and the Gibb
 
 ```
   using Pkg
-  Pkg.clone("https://github.com/ax1ine/GibbsSeaWater.jl")
+  Pkg.clone("https://github.com/ax1ine/GSW.jl")
 ```
 
 ## Example
@@ -22,7 +22,7 @@ Temperature, using the computationally-efficient expression for
 specific volume in terms of SA, CT and p (Roquet et al., 2014).
 
 ```
-  using GibbsSeaWater
+  using GSW
   rho = gsw_rho(sa, ct, p)
 ```
 
