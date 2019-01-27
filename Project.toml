@@ -3,5 +3,9 @@ uuid = "ac8313d0-1bdb-11e9-3da9-53be6eb7f00a"
 authors = ["axline <axline@mail.ru>"]
 version = "0.1.1"
 
+[deps]
+BinaryProvider = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
+Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+
 [compat]
 julia = "1.0"

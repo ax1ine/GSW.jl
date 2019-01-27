@@ -6,13 +6,12 @@ Documentation: http://www.teos-10.org/pubs/gsw/html/gsw_contents.html
 These declarations facilitate the use of TEOS-10 functions with Julia 1.0
 """
 
-#path to precompiled teos-10 library (x64)
-if Sys.islinux()
-  const libgswteos = joinpath(dirname(pathof(GSW)), "..", "gsw\\libgswteos-10.so")
+# Load deps.jl
+const depsjl_path = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
+if !isfile(depsjl_path)
+    error("GSW not installed properly, run Pkg.build(\"GSW\"), restart Julia and try again")
 end
-if Sys.iswindows()
-  const libgswteos = joinpath(dirname(pathof(GSW)), "..", "gsw\\libgswteos-10.dll")
-end
+include(depsjl_path)
 
 
 """
@@ -4099,6 +4098,11 @@ function gsw_p_from_z(z, lat)
   return ccall(("gsw_p_from_z",libgswteos),Cdouble,(Cdouble,Cdouble),z,lat)
 end
 
+
+function __init__()
+  # Always check dependencies that live in `deps.jl`
+  check_deps()
+end
 
 """
 Copyright (C) 2018 Alexander Smirnov (axline@mail.ru)
