@@ -1,6 +1,7 @@
 using GSW
+using Test
 
-    println(libgswteos)
+#    println(libgswteos)
 
     sa=35.
     sp=35.
